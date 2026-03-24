@@ -7,7 +7,7 @@ The entry point of the app. The user provides the source text and configures the
 - [ ] AC1: The user can paste or type a large body of text into an input field.
 - [ ] AC2: The user can set the desired number of questions (1–20, default 5).
 - [ ] AC3: The user can choose which question types to include: Multiple Choice only, True/False only, or both.
-- [ ] AC4: If the text is too short, the Generate button is disabled and an inline message explains the minimum length.
+- [ ] AC4: If the text is fewer than 100 words, the Generate button is disabled and an inline message reads "Enter at least 100 words to generate a quiz".
 - [ ] AC5: Tapping Generate with valid input navigates to the generation loading state.
 
 ## Scenarios
@@ -38,11 +38,10 @@ The entry point of the app. The user provides the source text and configures the
 - Importing text from files, URLs, or clipboard auto-detection.
 - Saving or persisting input text across app sessions.
 
-## Open Questions
+## Decisions
 
-> ⚠️ RE Review: **Minimum text length threshold.** AC4 references a minimum but does not specify the value. `TextChunker.MIN_INPUT_LENGTH` is the implementation constant, but the spec must define the user-facing threshold (e.g. "at least 200 characters" or "at least 50 words") so the UI message can be written and tested without reading implementation code. **Decision needed.**
-
-> ⚠️ RE Review: **Question type selector UX.** AC3 says the user can pick "Multiple Choice only, True/False only, or both" — but how is this surfaced? A toggle group with three options? Two checkboxes? This does not need an implementation answer, but the behaviour when the user deselects both types (making the selection invalid) needs a rule: disable Generate, or prevent the last type from being deselected?
+- **Minimum text length**: 100 words. The Generate button is disabled and the inline message reads "Enter at least 100 words to generate a quiz" when below this threshold. ✅ Resolved.
+- **Last question type deselection**: The last active question type cannot be deselected — the UI prevents it. At least one type is always selected. ✅ Resolved.
 
 ## Required Test Coverage
 - [ ] `TextInputViewModelTest`: Generate button disabled when text is blank

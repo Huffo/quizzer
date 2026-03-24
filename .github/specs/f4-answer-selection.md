@@ -48,9 +48,9 @@ The user selects one answer per question and submits it immediately. Feedback (c
 - Skipping a question to answer later.
 - Timer-based auto-submission.
 
-## Open Questions
+## Decisions
 
-> ⚠️ RE Review: **Submit with no selection mechanics (Scenario 3).** For this to work, "Submit" must be tappable even with no option selected. This contradicts a common UX pattern where Submit is disabled until a selection is made. The spec intentionally allows no-selection submission (counts as wrong). This must be explicitly confirmed to avoid an implementer defaulting to the "disabled until selected" pattern. **Confirm the Submit button is always enabled.**
+- **Submit button always enabled**: Confirmed. The Submit button is always tappable regardless of whether an option is selected. Submitting with no selection records the question as wrong and reveals the correct answer. ✅ Resolved.
 
 ## Required Test Coverage
 - [ ] `QuizViewModelTest`: selecting an option updates selected answer state
