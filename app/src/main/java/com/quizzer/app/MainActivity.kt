@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.quizzer.app.ui.AppNavHost
 import com.quizzer.app.ui.theme.QuizzerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -15,7 +16,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             QuizzerTheme {
-                // TODO(F1): Add NavHost and navigation graph
+                AppNavHost()
             }
         }
     }

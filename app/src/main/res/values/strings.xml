@@ -9,6 +9,7 @@
     <string name="text_input_word_count">%1$d words extracted</string>
     <string name="text_input_hint">Paste your text here…</string>
     <string name="text_input_question_count_label">Number of questions</string>
+    <string name="text_input_question_count_with_value">Number of questions: %1$d</string>
     <string name="text_input_question_types_label">Question types</string>
     <string name="text_input_type_multiple_choice">Multiple Choice</string>
     <string name="text_input_type_true_false">True / False</string>
