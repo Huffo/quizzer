@@ -3,6 +3,10 @@
     <string name="app_name">Quizzer</string>
 
     <!-- Text Input screen -->
+    <string name="text_input_pick_pdf_button">Choose PDF</string>
+    <string name="text_input_no_pdf_selected">No file selected</string>
+    <string name="text_input_pdf_parsing">Reading PDF…</string>
+    <string name="text_input_word_count">%1$d words extracted</string>
     <string name="text_input_hint">Paste your text here…</string>
     <string name="text_input_question_count_label">Number of questions</string>
     <string name="text_input_question_types_label">Question types</string>
@@ -10,6 +14,9 @@
     <string name="text_input_type_true_false">True / False</string>
     <string name="text_input_generate_button">Generate Quiz</string>
     <string name="text_input_too_short_error">Enter at least 100 words to generate a quiz</string>
+    <string name="text_input_pdf_error_password">This PDF is password protected and cannot be read</string>
+    <string name="text_input_pdf_error_corrupt">This file could not be read. Please try a different PDF</string>
+    <string name="text_input_pdf_error_generic">Could not open the file. Please try again</string>
     <string name="text_input_screen_content_description">Text input screen</string>
 
     <!-- Generation screen -->

@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!--
+        No READ_EXTERNAL_STORAGE / READ_MEDIA_* permission is required.
+        PDF files are opened via ACTION_OPEN_DOCUMENT (Storage Access Framework),
+        which grants the app a scoped URI permission automatically on API 34+.
+    -->
     <application
         android:name=".QuizzerApplication"
         android:allowBackup="true"

@@ -74,6 +74,9 @@ dependencies {
     // AICore (Gemini Nano on-device)
     implementation(libs.aicore)
 
+    // PDF parsing (on-device, no network)
+    implementation(libs.pdfbox.android)
+
     // Unit tests — JUnit 5 via BOM + Turbine for Flow assertions
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
