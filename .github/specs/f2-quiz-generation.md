@@ -48,9 +48,9 @@ After the user submits valid input, the app requests a quiz from the on-device m
 - Retry logic (user goes back and resubmits manually).
 - Progress indication beyond a generic loading spinner (e.g. "Generating question 2 of 5…").
 
-## Open Questions
+## Decisions
 
-> ⚠️ RE Review: **Text preservation on error/back.** AC4, AC5, and Scenario 5 state that text is "preserved" when returning to text input. This implies the ViewModel or navigation back-stack retains the input across the generation screen. The state management approach must be defined before implementation — does the text input screen stay in the back stack, or is state explicitly restored?
+- **Text preservation on error/back**: The `TextInput` screen stays in the back stack. Navigating to `Generation` pushes on top of it. Pressing back or tapping "Go back" pops the `Generation` screen, returning to `TextInput` with its `TextInputViewModel` still alive. No explicit state restoration is required. ✅ Resolved (Option A).
 
 ## Required Test Coverage
 - [ ] `QuizGeneratorViewModelTest`: emits `Loading` state immediately on `generateQuiz()` call
