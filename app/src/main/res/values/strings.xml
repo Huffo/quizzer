@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Quizzer</string>
+
+    <!-- Text Input screen -->
+    <string name="text_input_hint">Paste your text here…</string>
+    <string name="text_input_question_count_label">Number of questions</string>
+    <string name="text_input_question_types_label">Question types</string>
+    <string name="text_input_type_multiple_choice">Multiple Choice</string>
+    <string name="text_input_type_true_false">True / False</string>
+    <string name="text_input_generate_button">Generate Quiz</string>
+    <string name="text_input_too_short_error">Enter at least 100 words to generate a quiz</string>
+    <string name="text_input_screen_content_description">Text input screen</string>
+
+    <!-- Generation screen -->
+    <string name="generation_loading">Generating your quiz…</string>
+    <string name="generation_error_model_unavailable">Gemini Nano is not available on this device. Please ensure the model is downloaded in device settings.</string>
+    <string name="generation_error_parse_failure">The quiz could not be created from this text. Please try again.</string>
+    <string name="generation_error_generic">Something went wrong. Please try again.</string>
+    <string name="generation_go_back">Go back</string>
+    <string name="generation_partial_notice">%1$d questions generated from your text</string>
+
+    <!-- Quiz screen -->
+    <string name="quiz_question_counter">Question %1$d of %2$d</string>
+    <string name="quiz_source_reference_label">Source</string>
+    <string name="quiz_submit_button">Submit Answer</string>
+    <string name="quiz_next_button">Next</string>
+    <string name="quiz_correct_label">Correct!</string>
+    <string name="quiz_incorrect_label">Incorrect</string>
+    <string name="quiz_explanation_label">Explanation</string>
+    <string name="quiz_option_content_description">Option: %1$s</string>
+    <string name="quiz_select_prompt">Select an answer to continue</string>
+
+    <!-- Score screen -->
+    <string name="score_title">Quiz Complete</string>
+    <string name="score_result">%1$d / %2$d</string>
+    <string name="score_your_answer_label">Your answer</string>
+    <string name="score_correct_answer_label">Correct answer</string>
+    <string name="score_no_answer">No answer</string>
+    <string name="score_new_quiz_button">New Quiz</string>
+</resources>
