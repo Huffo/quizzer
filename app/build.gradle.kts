@@ -83,6 +83,7 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
+    testImplementation(libs.mockk)
 
     // Instrumented tests — JUnit 4 + Compose test rules
     androidTestImplementation(libs.androidx.test.ext.junit)

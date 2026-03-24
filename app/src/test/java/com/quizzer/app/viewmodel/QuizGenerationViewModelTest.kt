@@ -29,7 +29,7 @@ class QuizGenerationViewModelTest {
     private lateinit var viewModel: QuizGenerationViewModel
 
     private val defaultConfig = QuizConfig(
-        questionCount = 5,
+        questionCount = 2,
         questionTypes = QuestionType.entries.toSet(),
     )
     private val sampleText = "Sample ".repeat(120).trim()

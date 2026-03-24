@@ -6,6 +6,7 @@ compose-bom = "2025.03.00"
 hilt = "2.55"
 coroutines = "1.10.1"
 turbine = "1.2.0"
+mockk  = "1.13.16"
 kotlinx-serialization = "1.8.0"
 junit-jupiter = "5.12.0"
 android-junit5 = "1.11.0.0"
@@ -53,6 +54,7 @@ junit-bom                = { group = "org.junit",            name = "junit-bom",
 junit-jupiter            = { group = "org.junit.jupiter",   name = "junit-jupiter",            version.ref = "junit-jupiter" }
 junit-platform-launcher  = { group = "org.junit.platform",  name = "junit-platform-launcher" }
 turbine                  = { group = "app.cash.turbine",     name = "turbine",                  version.ref = "turbine" }
+mockk                    = { group = "io.mockk",             name = "mockk",                    version.ref = "mockk" }
 
 [plugins]
 android-application  = { id = "com.android.application",                          version.ref = "agp" }

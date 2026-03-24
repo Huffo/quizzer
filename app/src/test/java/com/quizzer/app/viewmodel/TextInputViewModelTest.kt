@@ -8,6 +8,7 @@ import com.quizzer.app.model.PdfResult
 import com.quizzer.app.model.QuestionType
 import com.quizzer.app.model.QuizConfig
 import com.quizzer.app.ui.PdfState
+import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -67,7 +68,7 @@ class TextInputViewModelTest {
         val shortText = "word ".repeat(50).trim()
         fakePdfParser.response = PdfResult.Success(shortText)
 
-        viewModel.onPdfSelected(Uri.EMPTY)
+        viewModel.onPdfSelected(mockk(relaxed = true))
 
         val state = viewModel.uiState.value
         assertInstanceOf(PdfState.Ready::class.java, state.pdfState)
@@ -78,7 +79,7 @@ class TextInputViewModelTest {
     fun `Generate is enabled when extracted text meets the 100-word minimum`() = runTest {
         fakePdfParser.response = PdfResult.Success(FakePdfParser.FAKE_TEXT)
 
-        viewModel.onPdfSelected(Uri.EMPTY)
+        viewModel.onPdfSelected(mockk(relaxed = true))
 
         assertTrue(viewModel.uiState.value.isGenerateEnabled)
     }
@@ -87,7 +88,7 @@ class TextInputViewModelTest {
     fun `parse error sets ParseError state and keeps Generate disabled`() = runTest {
         fakePdfParser.response = PdfResult.Failure(PdfError.PasswordProtected)
 
-        viewModel.onPdfSelected(Uri.EMPTY)
+        viewModel.onPdfSelected(mockk(relaxed = true))
 
         val state = viewModel.uiState.value
         assertInstanceOf(PdfState.ParseError::class.java, state.pdfState)
@@ -96,8 +97,8 @@ class TextInputViewModelTest {
 
     @Test
     fun `picking a new PDF replaces the previous extraction`() = runTest {
-        val firstUri = Uri.parse("content://first")
-        val secondUri = Uri.parse("content://second")
+        val firstUri = mockk<Uri>(relaxed = true)
+        val secondUri = mockk<Uri>(relaxed = true)
         fakePdfParser.response = PdfResult.Success(FakePdfParser.FAKE_TEXT)
 
         viewModel.onPdfSelected(firstUri)
@@ -159,7 +160,7 @@ class TextInputViewModelTest {
     fun `onGenerateClicked emits QuizConfig via navigateToGeneration`() = runTest {
         fakePdfParser.response = PdfResult.Success(FakePdfParser.FAKE_TEXT)
         val targetCount = 10
-        viewModel.onPdfSelected(Uri.EMPTY)
+        viewModel.onPdfSelected(mockk(relaxed = true))
         viewModel.onQuestionCountChanged(targetCount)
 
         viewModel.navigateToGeneration.test {
