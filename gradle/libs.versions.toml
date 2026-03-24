@@ -43,7 +43,10 @@ kotlinx-coroutines-test    = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 
 # AICore (Gemini Nano)
-aicore = { group = "com.google.ai.edge.aicore", name = "aicore", version.ref = "aicore" }
+aicore       = { group = "com.google.ai.edge.aicore", name = "aicore",        version.ref = "aicore" }
+
+# PDF parsing (on-device, no network)
+pdfbox-android = { group = "com.tom_roush", name = "pdfbox-android", version.ref = "pdfbox-android" }
 
 # Testing
 junit-bom                = { group = "org.junit",            name = "junit-bom",                version.ref = "junit-jupiter" }
