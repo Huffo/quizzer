@@ -1,5 +1,7 @@
 package com.quizzer.app.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * A single quiz question generated from user-supplied text.
  *
@@ -12,6 +14,7 @@ package com.quizzer.app.model
  * - [sourceReference] is non-blank: a section heading if one exists, otherwise the
  *   opening sentence of the nearest paragraph.
  */
+@Serializable
 data class QuizQuestion(
     val id: String,
     val type: QuestionType,

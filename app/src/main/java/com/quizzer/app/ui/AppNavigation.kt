@@ -10,15 +10,16 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.quizzer.app.model.QuestionType
 import com.quizzer.app.model.QuizConfig
+import com.quizzer.app.viewmodel.QuizGenerationViewModel
 import com.quizzer.app.viewmodel.TextInputViewModel
 import kotlinx.serialization.Serializable
 
 /**
  * Root navigation host for the app.
  *
- * Nav graph as of F2: TextInput → Generation.
- * Text is retrieved from [TextInputViewModel] via the TextInput back-stack entry
- * rather than encoded in nav args (PDF text can be hundreds of KB).
+ * Nav graph as of F3: TextInput → Generation → Quiz.
+ * Large data (PDF text, question list) is never placed in nav args; instead it is
+ * read from the originating screen's [ViewModel] still alive in the back stack.
  */
 @Composable
 fun AppNavHost() {
@@ -61,9 +62,31 @@ fun AppNavHost() {
                 text = text,
                 config = config,
                 onNavigateToQuiz = { _, _ ->
-                    // TODO(F3): navController.navigate(Screen.Quiz(…))
+                    navController.navigate(Screen.Quiz)
                 },
                 onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        composable<Screen.Quiz> {
+            // Read the question list from the Generation ViewModel still in the back stack.
+            val generationEntry = navController.getBackStackEntry<Screen.Generation>()
+            val generationVm: QuizGenerationViewModel = hiltViewModel(generationEntry)
+            val genState by generationVm.uiState.collectAsStateWithLifecycle()
+
+            val questions = when (val s = genState) {
+                is QuizGenerationUiState.Success -> s.questions
+                is QuizGenerationUiState.PartialSuccess -> s.questions
+                else -> emptyList()
+            }
+            val partialCount = (genState as? QuizGenerationUiState.PartialSuccess)?.requestedCount
+
+            QuizDisplayRoute(
+                questions = questions,
+                partialCount = partialCount,
+                onNavigateToScore = { _ ->
+                    // TODO(F5): navController.navigate(Screen.Score)
+                },
             )
         }
     }
@@ -87,5 +110,14 @@ private sealed interface Screen {
         val questionCount: Int,
         val questionTypes: String,
     ) : Screen
+
+    /**
+     * Quiz display screen.
+     *
+     * Questions are NOT passed as nav args; they are read from the
+     * [QuizGenerationViewModel] still alive in the [Generation] back-stack entry.
+     */
+    @Serializable
+    data object Quiz : Screen
 }
 
