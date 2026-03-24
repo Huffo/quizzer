@@ -11,7 +11,6 @@ import com.tom_roush.pdfbox.text.PDFTextStripper
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import org.apache.pdfbox.io.RandomAccessReadBufferedFile
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Named

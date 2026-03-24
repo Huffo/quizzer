@@ -1,7 +1,6 @@
 package com.quizzer.app.data.impl
 
 import com.google.ai.edge.aicore.GenerativeModel
-import com.google.ai.edge.aicore.generationConfig
 import com.quizzer.app.data.TextChunker
 import com.quizzer.app.domain.PromptBuilder
 import com.quizzer.app.domain.QuizGeneratorRepository
@@ -17,7 +16,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.util.UUID
 import javax.inject.Inject
-import javax.inject.Named
 
 /**
  * Production implementation of [QuizGeneratorRepository] backed by AICore (Gemini Nano).
@@ -99,4 +97,3 @@ private data class QuizQuestionDto(
         sourceReference = sourceReference,
     )
 }
-

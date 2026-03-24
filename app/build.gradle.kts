@@ -71,11 +71,11 @@ dependencies {
     // Serialization
     implementation(libs.kotlinx.serialization.json)
 
-    // AICore (Gemini Nano on-device)
-    implementation(libs.aicore)
+    // AICore (Gemini Nano on-device) — release only; debug uses FakeQuizGeneratorRepository
+    releaseImplementation(libs.aicore)
 
-    // PDF parsing (on-device, no network)
-    implementation(libs.pdfbox.android)
+    // PDF parsing (on-device, no network) — release only; debug uses FakePdfParser
+    releaseImplementation(libs.pdfbox.android)
 
     // Unit tests — JUnit 5 via BOM + Turbine for Flow assertions
     testImplementation(platform(libs.junit.bom))
