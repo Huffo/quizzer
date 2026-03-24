@@ -1,6 +1,7 @@
 package com.quizzer.app.domain
 
 import android.net.Uri
+import com.quizzer.app.model.PdfResult
 
 /**
  * Extracts plain text from a user-supplied PDF file.
