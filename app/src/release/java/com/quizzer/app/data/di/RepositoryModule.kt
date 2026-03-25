@@ -36,10 +36,10 @@ abstract class RepositoryModule {
     companion object {
         @Provides
         @Singleton
-        fun provideGenerativeModel(@ApplicationContext context: Context): GenerativeModel =
+        fun provideGenerativeModel(@ApplicationContext appContext: Context): GenerativeModel =
             GenerativeModel(
                 generationConfig = generationConfig {
-                    context = context
+                    context = appContext
                     temperature = 0.2f
                     topK = 16
                     maxOutputTokens = 2048

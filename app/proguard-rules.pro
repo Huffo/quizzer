@@ -13,3 +13,6 @@
 
 # Hilt
 -dontwarn dagger.hilt.**
+
+# pdfbox-android — JP2 (JPEG2000) support is optional; suppress missing-class warning
+-dontwarn com.gemalto.jp2.JP2Decoder
