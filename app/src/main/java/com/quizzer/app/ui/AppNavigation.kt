@@ -10,6 +10,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.quizzer.app.model.QuestionType
 import com.quizzer.app.model.QuizConfig
+import com.quizzer.app.model.UserAnswer
+import com.quizzer.app.viewmodel.QuizDisplayViewModel
 import com.quizzer.app.viewmodel.QuizGenerationViewModel
 import com.quizzer.app.viewmodel.TextInputViewModel
 import kotlinx.serialization.Serializable
@@ -17,9 +19,10 @@ import kotlinx.serialization.Serializable
 /**
  * Root navigation host for the app.
  *
- * Nav graph as of F3: TextInput → Generation → Quiz.
- * Large data (PDF text, question list) is never placed in nav args; instead it is
- * read from the originating screen's [ViewModel] still alive in the back stack.
+ * Nav graph as of F5: TextInput → Generation → Quiz → Score.
+ * Large data (PDF text, question list, answer list) is never placed in nav args;
+ * instead it is read from the originating screen's [ViewModel] still alive in the
+ * back stack.
  */
 @Composable
 fun AppNavHost() {
@@ -85,7 +88,41 @@ fun AppNavHost() {
                 questions = questions,
                 partialCount = partialCount,
                 onNavigateToScore = { _ ->
-                    // TODO(F5): navController.navigate(Screen.Score)
+                    navController.navigate(Screen.Score)
+                },
+            )
+        }
+
+        composable<Screen.Score> {
+            // Read questions from the Generation ViewModel and answers from the Quiz
+            // ViewModel — both still alive in the back stack.
+            val generationEntry = navController.getBackStackEntry<Screen.Generation>()
+            val generationVm: QuizGenerationViewModel = hiltViewModel(generationEntry)
+            val genState by generationVm.uiState.collectAsStateWithLifecycle()
+            val questions = when (val s = genState) {
+                is QuizGenerationUiState.Success -> s.questions
+                is QuizGenerationUiState.PartialSuccess -> s.questions
+                else -> emptyList()
+            }
+
+            val quizEntry = navController.getBackStackEntry<Screen.Quiz>()
+            val quizDisplayVm: QuizDisplayViewModel = hiltViewModel(quizEntry)
+
+            // The answers were passed via the navigateToScore channel, but ScoreViewModel
+            // reads them directly from the quiz ViewModel's collected answers exposed
+            // through the navigation event.  We need to pass them as state.  Since the
+            // QuizDisplayViewModel no longer exposes the collected list directly, we
+            // re-derive it from the quizDisplayVm's existing navigateToScore channel by
+            // holding the answers in the ScoreViewModel (initialised via answersFromQuiz).
+            val answersFromQuiz = quizDisplayVm.collectedAnswers
+
+            ScoreRoute(
+                questions = questions,
+                answers = answersFromQuiz,
+                onNavigateToNewQuiz = {
+                    navController.navigate(Screen.TextInput) {
+                        popUpTo(Screen.TextInput) { inclusive = true }
+                    }
                 },
             )
         }
@@ -119,5 +156,14 @@ private sealed interface Screen {
      */
     @Serializable
     data object Quiz : Screen
+
+    /**
+     * Score screen.
+     *
+     * Questions and answers are NOT passed as nav args; they are read from the
+     * [QuizGenerationViewModel] and [QuizDisplayViewModel] still alive in the back stack.
+     */
+    @Serializable
+    data object Score : Screen
 }
 

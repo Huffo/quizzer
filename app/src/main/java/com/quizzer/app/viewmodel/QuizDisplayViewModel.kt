@@ -36,7 +36,14 @@ class QuizDisplayViewModel @Inject constructor() : ViewModel() {
     /** One-shot event: fires when every answer has been submitted. */
     val navigateToScore: Flow<List<UserAnswer>> = _navigateToScore.receiveAsFlow()
 
-    private val collectedAnswers = mutableListOf<UserAnswer>()
+    private val _collectedAnswers = mutableListOf<UserAnswer>()
+
+    /**
+     * The list of answers collected so far, read by [AppNavHost] to seed the Score screen.
+     *
+     * This is a snapshot list; callers should read it only after [navigateToScore] fires.
+     */
+    val collectedAnswers: List<UserAnswer> get() = _collectedAnswers.toList()
 
     /**
      * Initialises the quiz with [questions].
@@ -77,7 +84,7 @@ class QuizDisplayViewModel @Inject constructor() : ViewModel() {
         if (state.isSubmitted) return
         val question = state.currentQuestion ?: return
 
-        collectedAnswers.add(
+        _collectedAnswers.add(
             UserAnswer(
                 questionId = question.id,
                 selectedOption = state.selectedAnswer,
@@ -99,7 +106,7 @@ class QuizDisplayViewModel @Inject constructor() : ViewModel() {
 
         if (state.isLastQuestion) {
             viewModelScope.launch {
-                _navigateToScore.send(collectedAnswers.toList())
+                _navigateToScore.send(_collectedAnswers.toList())
             }
         } else {
             _uiState.value = state.copy(
