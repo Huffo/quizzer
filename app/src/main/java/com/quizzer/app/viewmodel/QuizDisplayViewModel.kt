@@ -55,38 +55,57 @@ class QuizDisplayViewModel @Inject constructor() : ViewModel() {
         )
     }
 
-    /** Called when the user taps an answer option. */
+    /**
+     * Called when the user taps an answer option.
+     *
+     * Ignored after the current question has been submitted (AC7).
+     */
     fun onAnswerSelected(option: String) {
+        if (_uiState.value.isSubmitted) return
         _uiState.value = _uiState.value.copy(selectedAnswer = option)
     }
 
     /**
-     * Called when the user taps the Submit button (AC8: only reachable after selection).
+     * Called when the user taps the Submit button.
      *
-     * Records the answer and either advances to the next question or, if this was
-     * the last question, emits the full answer list via [navigateToScore].
+     * Records the answer (null selection is allowed — counts as wrong per AC3) and
+     * marks the question as submitted so the screen can show feedback (AC4–AC6).
+     * Idempotent: successive calls while already submitted are ignored.
      */
     fun onSubmitClicked() {
         val state = _uiState.value
+        if (state.isSubmitted) return
         val question = state.currentQuestion ?: return
-        val selected = state.selectedAnswer ?: return
 
         collectedAnswers.add(
             UserAnswer(
                 questionId = question.id,
-                selectedOption = selected,
+                selectedOption = state.selectedAnswer,
                 correctAnswer = question.answer,
             ),
         )
+        _uiState.value = state.copy(isSubmitted = true)
+    }
+
+    /**
+     * Called when the user taps the Next button (visible only after submission).
+     *
+     * Advances to the next question or, if this was the last question, emits the
+     * full answer list via [navigateToScore].
+     */
+    fun onNextClicked() {
+        val state = _uiState.value
+        if (!state.isSubmitted) return
 
         if (state.isLastQuestion) {
             viewModelScope.launch {
                 _navigateToScore.send(collectedAnswers.toList())
             }
         } else {
-            _uiState.value = _uiState.value.copy(
+            _uiState.value = state.copy(
                 currentIndex = state.currentIndex + 1,
                 selectedAnswer = null,
+                isSubmitted = false,
             )
         }
     }

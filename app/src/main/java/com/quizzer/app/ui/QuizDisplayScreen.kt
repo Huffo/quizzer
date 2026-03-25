@@ -1,6 +1,7 @@
 package com.quizzer.app.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -41,6 +43,7 @@ import com.quizzer.app.viewmodel.QuizDisplayViewModel
 private const val SCREEN_HORIZONTAL_PADDING_DP = 16
 private const val SCREEN_VERTICAL_PADDING_DP = 8
 private const val SECTION_SPACING_DP = 8
+private const val EXPLANATION_SPACING_DP = 4
 private const val OPTION_ROW_VERTICAL_PADDING_DP = 8
 private const val RADIO_TEXT_SPACER_DP = 8
 
@@ -81,15 +84,17 @@ fun QuizDisplayRoute(
         uiState = uiState,
         onOptionSelected = viewModel::onAnswerSelected,
         onSubmitClicked = viewModel::onSubmitClicked,
+        onNextClicked = viewModel::onNextClicked,
     )
 }
 
 /**
  * Stateless quiz display composable.
  *
- * Renders a single question at a time (AC1): the counter (AC2), question text (AC3),
- * answer options (AC4, AC6, AC7), source reference (AC5), and the Submit button
- * which is disabled until an option is selected (AC8).
+ * Renders a single question at a time. Before submission: shows the question,
+ * selectable options, and an always-enabled Submit button (AC3). After submission:
+ * options are locked with correct/incorrect colour feedback (AC4, AC5), the
+ * explanation is shown (AC6), and the Submit button is replaced by Next (AC8).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,6 +102,7 @@ fun QuizDisplayScreen(
     uiState: QuizDisplayUiState,
     onOptionSelected: (String) -> Unit,
     onSubmitClicked: () -> Unit,
+    onNextClicked: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // Nothing to show until the quiz has been started.
@@ -131,24 +137,48 @@ fun QuizDisplayScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(SECTION_SPACING_DP.dp),
         ) {
-            // AC3: Question text displayed prominently.
+            // Question text displayed prominently.
             Text(
                 text = question.question,
                 style = MaterialTheme.typography.headlineSmall,
             )
 
-            // AC4: Options as radio-button rows; AC6/AC7 enforced by the model invariants.
+            // Options: selectable before submission, locked with colour feedback after (AC4, AC5, AC7).
             Column(modifier = Modifier.selectableGroup()) {
                 question.options.forEach { option ->
                     OptionRow(
                         option = option,
                         isSelected = option == uiState.selectedAnswer,
+                        isSubmitted = uiState.isSubmitted,
+                        isCorrectAnswer = option == question.answer,
                         onSelect = { onOptionSelected(option) },
                     )
                 }
             }
 
-            // AC5: Source reference below the options.
+            // Explanation shown only after the user submits (AC6).
+            if (uiState.isSubmitted) {
+                val explanationLabel = stringResource(R.string.quiz_explanation_label)
+                val explanationDesc = "$explanationLabel: ${question.explanation}"
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(EXPLANATION_SPACING_DP.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = explanationDesc },
+                ) {
+                    Text(
+                        text = explanationLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        text = question.explanation,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+
+            // Source reference below the options / explanation.
             val sourceLabel = stringResource(R.string.quiz_source_reference_label)
             val sourceDesc = "$sourceLabel: ${question.sourceReference}"
             Text(
@@ -160,16 +190,28 @@ fun QuizDisplayScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // AC8: Submit button disabled until an option is selected.
-            val submitLabel = stringResource(R.string.quiz_submit_button)
-            Button(
-                onClick = onSubmitClicked,
-                enabled = uiState.canAdvance,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { contentDescription = submitLabel },
-            ) {
-                Text(submitLabel)
+            // Before submission: Submit (always enabled, AC3).
+            // After submission: Next to advance or go to score (AC8).
+            if (!uiState.isSubmitted) {
+                val submitLabel = stringResource(R.string.quiz_submit_button)
+                Button(
+                    onClick = onSubmitClicked,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = submitLabel },
+                ) {
+                    Text(submitLabel)
+                }
+            } else {
+                val nextLabel = stringResource(R.string.quiz_next_button)
+                Button(
+                    onClick = onNextClicked,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = nextLabel },
+                ) {
+                    Text(nextLabel)
+                }
             }
 
             Spacer(modifier = Modifier.height(SCREEN_VERTICAL_PADDING_DP.dp))
@@ -181,9 +223,29 @@ fun QuizDisplayScreen(
 private fun OptionRow(
     option: String,
     isSelected: Boolean,
+    isSubmitted: Boolean,
+    isCorrectAnswer: Boolean,
     onSelect: () -> Unit,
 ) {
-    val optionDesc = stringResource(R.string.quiz_option_content_description, option)
+    // Post-submission content descriptions convey feedback to screen readers (AC4, AC5).
+    val optionDesc = when {
+        isSubmitted && isCorrectAnswer && isSelected ->
+            stringResource(R.string.quiz_option_correct_selected_description, option)
+        isSubmitted && isCorrectAnswer ->
+            stringResource(R.string.quiz_option_correct_answer_description, option)
+        isSubmitted && isSelected ->
+            stringResource(R.string.quiz_option_wrong_selected_description, option)
+        else ->
+            stringResource(R.string.quiz_option_content_description, option)
+    }
+
+    // Background colour highlights correct/incorrect options after submission (AC4, AC5).
+    val containerColor: Color = when {
+        isSubmitted && isCorrectAnswer -> MaterialTheme.colorScheme.primaryContainer
+        isSubmitted && isSelected -> MaterialTheme.colorScheme.errorContainer
+        else -> Color.Transparent
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -191,7 +253,9 @@ private fun OptionRow(
                 selected = isSelected,
                 onClick = onSelect,
                 role = Role.RadioButton,
+                enabled = !isSubmitted,
             )
+            .background(color = containerColor, shape = MaterialTheme.shapes.small)
             .padding(vertical = OPTION_ROW_VERTICAL_PADDING_DP.dp)
             .semantics { contentDescription = optionDesc },
         verticalAlignment = Alignment.CenterVertically,
@@ -232,6 +296,9 @@ private fun QuizDisplayScreenPreview() {
             ),
             onOptionSelected = {},
             onSubmitClicked = {},
+            onNextClicked = {},
         )
     }
 }
+
+

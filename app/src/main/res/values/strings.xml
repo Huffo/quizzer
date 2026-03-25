@@ -37,6 +37,9 @@
     <string name="quiz_incorrect_label">Incorrect</string>
     <string name="quiz_explanation_label">Explanation</string>
     <string name="quiz_option_content_description">Option: %1$s</string>
+    <string name="quiz_option_correct_answer_description">Option: %1$s, correct answer</string>
+    <string name="quiz_option_correct_selected_description">Option: %1$s, correct, your answer</string>
+    <string name="quiz_option_wrong_selected_description">Option: %1$s, incorrect, your answer</string>
     <string name="quiz_select_prompt">Select an answer to continue</string>
 
     <!-- Score screen -->

@@ -3,7 +3,7 @@ package com.quizzer.app.ui
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import com.quizzer.app.R
@@ -31,6 +31,7 @@ class QuizDisplayScreenTest {
                 uiState = uiState,
                 onOptionSelected = {},
                 onSubmitClicked = {},
+                onNextClicked = {},
             )
         }
     }
@@ -91,18 +92,18 @@ class QuizDisplayScreenTest {
         rule.onNodeWithContentDescription(sourceDesc).assertIsDisplayed()
     }
 
-    // ── AC8: Forward navigation not available before answer selected ──────────
+    // ── F4 AC3: Submit button is always enabled (regardless of selection) ─────
 
     @Test
-    fun submitButton_isDisabled_whenNoAnswerIsSelected() {
+    fun submitButton_isAlwaysEnabled_whenNoAnswerSelected() {
         setScreen(QuizDisplayUiState(questions = listOf(mcQuestion), selectedAnswer = null))
 
         val submitLabel = rule.activity.getString(R.string.quiz_submit_button)
-        rule.onNodeWithContentDescription(submitLabel).assertIsNotEnabled()
+        rule.onNodeWithContentDescription(submitLabel).assertIsEnabled()
     }
 
     @Test
-    fun submitButton_isEnabled_whenAnswerIsSelected() {
+    fun submitButton_isAlwaysEnabled_whenAnswerIsSelected() {
         val selectedOption = mcQuestion.options[0]
         setScreen(
             QuizDisplayUiState(
@@ -114,4 +115,96 @@ class QuizDisplayScreenTest {
         val submitLabel = rule.activity.getString(R.string.quiz_submit_button)
         rule.onNodeWithContentDescription(submitLabel).assertIsEnabled()
     }
+
+    // ── F4 AC8: Next button replaces Submit after submission ──────────────────
+
+    @Test
+    fun nextButton_isDisplayed_afterSubmission() {
+        setScreen(
+            QuizDisplayUiState(
+                questions = listOf(mcQuestion),
+                selectedAnswer = mcQuestion.options[0],
+                isSubmitted = true,
+            ),
+        )
+
+        val nextLabel = rule.activity.getString(R.string.quiz_next_button)
+        rule.onNodeWithContentDescription(nextLabel).assertIsDisplayed()
+    }
+
+    @Test
+    fun submitButton_isNotDisplayed_afterSubmission() {
+        setScreen(
+            QuizDisplayUiState(
+                questions = listOf(mcQuestion),
+                selectedAnswer = mcQuestion.options[0],
+                isSubmitted = true,
+            ),
+        )
+
+        val submitLabel = rule.activity.getString(R.string.quiz_submit_button)
+        rule.onNodeWithContentDescription(submitLabel).assertIsNotDisplayed()
+    }
+
+    // ── F4 AC5 + AC4: Correct answer highlighted after correct submission ──────
+
+    @Test
+    fun correctAnswer_hasCorrectDescription_afterCorrectSubmission() {
+        val correctOption = mcQuestion.answer
+        setScreen(
+            QuizDisplayUiState(
+                questions = listOf(mcQuestion),
+                selectedAnswer = correctOption,
+                isSubmitted = true,
+            ),
+        )
+
+        val correctSelectedDesc = rule.activity.getString(
+            R.string.quiz_option_correct_selected_description,
+            correctOption,
+        )
+        rule.onNodeWithContentDescription(correctSelectedDesc).assertIsDisplayed()
+    }
+
+    // ── F4 AC4 + AC5: Wrong option and correct answer highlighted after wrong submission
+
+    @Test
+    fun wrongOption_andCorrectAnswer_haveExpectedDescriptions_afterWrongSubmission() {
+        val wrongOption = mcQuestion.options.first { it != mcQuestion.answer }
+        setScreen(
+            QuizDisplayUiState(
+                questions = listOf(mcQuestion),
+                selectedAnswer = wrongOption,
+                isSubmitted = true,
+            ),
+        )
+
+        val wrongDesc = rule.activity.getString(
+            R.string.quiz_option_wrong_selected_description,
+            wrongOption,
+        )
+        val correctDesc = rule.activity.getString(
+            R.string.quiz_option_correct_answer_description,
+            mcQuestion.answer,
+        )
+        rule.onNodeWithContentDescription(wrongDesc).assertIsDisplayed()
+        rule.onNodeWithContentDescription(correctDesc).assertIsDisplayed()
+    }
+
+    // ── F4 AC6: Explanation visible after submission ───────────────────────────
+
+    @Test
+    fun explanation_isDisplayed_afterSubmission() {
+        setScreen(
+            QuizDisplayUiState(
+                questions = listOf(mcQuestion),
+                isSubmitted = true,
+            ),
+        )
+
+        val explanationLabel = rule.activity.getString(R.string.quiz_explanation_label)
+        val explanationDesc = "$explanationLabel: ${mcQuestion.explanation}"
+        rule.onNodeWithContentDescription(explanationDesc).assertIsDisplayed()
+    }
 }
+

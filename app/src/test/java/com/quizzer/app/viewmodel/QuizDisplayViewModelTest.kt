@@ -60,38 +60,91 @@ class QuizDisplayViewModelTest {
         assertEquals(questions[0], viewModel.uiState.value.currentQuestion)
     }
 
-    // ── AC8: canAdvance gated on selection ────────────────────────────────────
+    // ── F4 AC3: Submit button always enabled (isSubmitted tracks state) ───────
 
     @Test
-    fun `canAdvance is false before any option is selected`() = runTest {
+    fun `isSubmitted is false before submitting`() = runTest {
         viewModel.start(questions)
-        assertFalse(viewModel.uiState.value.canAdvance)
+        assertFalse(viewModel.uiState.value.isSubmitted)
     }
 
     @Test
-    fun `canAdvance is true after an option is selected`() = runTest {
+    fun `isSubmitted is true after onSubmitClicked`() = runTest {
         viewModel.start(questions)
-        val firstOption = questions[0].options[0]
-        viewModel.onAnswerSelected(firstOption)
-        assertTrue(viewModel.uiState.value.canAdvance)
-    }
-
-    @Test
-    fun `canAdvance resets to false after advancing to the next question`() = runTest {
-        viewModel.start(questions)
-        viewModel.onAnswerSelected(questions[0].options[0])
         viewModel.onSubmitClicked()
-        assertFalse(viewModel.uiState.value.canAdvance)
+        assertTrue(viewModel.uiState.value.isSubmitted)
     }
 
-    // ── AC9: currentIndex increments after submitting an answer ───────────────
+    @Test
+    fun `isSubmitted resets to false after onNextClicked advances to next question`() = runTest {
+        viewModel.start(questions)
+        viewModel.onSubmitClicked()
+        viewModel.onNextClicked()
+        assertFalse(viewModel.uiState.value.isSubmitted)
+    }
+
+    // ── F4 AC1: Option selection (radio-button behaviour) ─────────────────────
 
     @Test
-    fun `onSubmitClicked advances currentIndex and clears selectedAnswer`() = runTest {
+    fun `selectedAnswer updates when option is selected`() = runTest {
+        val firstOption = questions[0].options[0]
+        viewModel.start(questions)
+        viewModel.onAnswerSelected(firstOption)
+        assertEquals(firstOption, viewModel.uiState.value.selectedAnswer)
+    }
+
+    @Test
+    fun `selecting a second option replaces the first`() = runTest {
+        val firstOption = questions[0].options[0]
+        val secondOption = questions[0].options[1]
+        viewModel.start(questions)
+        viewModel.onAnswerSelected(firstOption)
+        viewModel.onAnswerSelected(secondOption)
+        assertEquals(secondOption, viewModel.uiState.value.selectedAnswer)
+    }
+
+    // ── F4 AC7: Options are locked after submission ───────────────────────────
+
+    @Test
+    fun `answer selection is ignored after submission`() = runTest {
+        val firstOption = questions[0].options[0]
+        val secondOption = questions[0].options[1]
+        viewModel.start(questions)
+        viewModel.onAnswerSelected(firstOption)
+        viewModel.onSubmitClicked()
+        // Attempt to change selection after submission — should be ignored.
+        viewModel.onAnswerSelected(secondOption)
+        assertEquals(firstOption, viewModel.uiState.value.selectedAnswer)
+    }
+
+    // ── F4 AC3: Submit with no selection records a wrong answer ───────────────
+
+    @Test
+    fun `submit with no selection records a wrong answer`() = runTest {
+        val singleQuestion = listOf(questions[0])
+        viewModel.start(singleQuestion)
+
+        viewModel.navigateToScore.test {
+            viewModel.onSubmitClicked() // no selection
+            viewModel.onNextClicked()   // last question → fires event
+
+            val answers = awaitItem()
+            assertEquals(1, answers.size)
+            assertNull(answers[0].selectedOption)
+            assertFalse(answers[0].isCorrect)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    // ── F4 AC8: onNextClicked advances currentIndex ───────────────────────────
+
+    @Test
+    fun `onNextClicked advances currentIndex and clears selectedAnswer after submission`() = runTest {
         val expectedNextIndex = 1
         viewModel.start(questions)
         viewModel.onAnswerSelected(questions[0].options[0])
         viewModel.onSubmitClicked()
+        viewModel.onNextClicked()
 
         val state = viewModel.uiState.value
         assertEquals(expectedNextIndex, state.currentIndex)
@@ -99,10 +152,11 @@ class QuizDisplayViewModelTest {
     }
 
     @Test
-    fun `currentQuestion changes to next question after submitting first answer`() = runTest {
+    fun `currentQuestion changes to next question after submit and next`() = runTest {
         viewModel.start(questions)
         viewModel.onAnswerSelected(questions[0].options[0])
         viewModel.onSubmitClicked()
+        viewModel.onNextClicked()
         assertEquals(questions[1], viewModel.uiState.value.currentQuestion)
     }
 
@@ -113,9 +167,10 @@ class QuizDisplayViewModelTest {
         viewModel.start(questions)
 
         viewModel.navigateToScore.test {
-            questions.forEach { question ->
+            questions.forEachIndexed { index, question ->
                 viewModel.onAnswerSelected(question.options[0])
                 viewModel.onSubmitClicked()
+                viewModel.onNextClicked() // last question triggers the event
             }
 
             val answers: List<UserAnswer> = awaitItem()
@@ -131,13 +186,16 @@ class QuizDisplayViewModelTest {
         val correctOption = firstQuestion.answer
 
         viewModel.navigateToScore.test {
-            // Answer first question correctly, remaining with first option.
+            // Answer first question correctly.
             viewModel.onAnswerSelected(correctOption)
             viewModel.onSubmitClicked()
+            viewModel.onNextClicked()
 
+            // Answer remaining questions with first option (may or may not be correct).
             questions.drop(1).forEach { question ->
                 viewModel.onAnswerSelected(question.options[0])
                 viewModel.onSubmitClicked()
+                viewModel.onNextClicked()
             }
 
             val answers = awaitItem()
@@ -161,3 +219,4 @@ class QuizDisplayViewModelTest {
         assertEquals(questions[0].options[0], selectedAfter)
     }
 }
+
