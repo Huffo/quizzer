@@ -1,6 +1,7 @@
 package com.quizzer.app.data.di
 
 import android.content.Context
+import com.google.ai.edge.aicore.DownloadConfig
 import com.google.ai.edge.aicore.GenerativeModel
 import com.google.ai.edge.aicore.generationConfig
 import com.quizzer.app.data.impl.AiCoreQuizGeneratorRepository
@@ -44,6 +45,7 @@ abstract class RepositoryModule {
                     topK = 16
                     maxOutputTokens = 2048
                 },
+                downloadConfig = DownloadConfig(),
             )
     }
 }

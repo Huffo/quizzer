@@ -1,5 +1,6 @@
 package com.quizzer.app.data.impl
 
+import com.google.ai.edge.aicore.GenerativeAIException
 import com.google.ai.edge.aicore.GenerativeModel
 import com.quizzer.app.data.TextChunker
 import com.quizzer.app.domain.PromptBuilder
@@ -21,7 +22,7 @@ import javax.inject.Inject
  * Production implementation of [QuizGeneratorRepository] backed by AICore (Gemini Nano).
  *
  * Pipeline:
- * 1. Guard with availability check → [QuizError.ModelUnavailable] on failure.
+ * 1. Guard with [GenerativeModel.prepareInferenceEngine] → [QuizError.ModelUnavailable] on failure.
  * 2. Extract a token-capped excerpt via [TextChunker.randomExcerpt].
  * 3. Build the prompt via [PromptBuilder.build].
  * 4. Send to [GenerativeModel] and collect the response.
@@ -41,6 +42,7 @@ class AiCoreQuizGeneratorRepository @Inject constructor(
         config: QuizConfig,
     ): Result<List<QuizQuestion>> = withContext(Dispatchers.IO) {
         try {
+            generativeModel.prepareInferenceEngine()
             val excerpt = textChunker.randomExcerpt(text)
             val prompt = promptBuilder.build(excerpt, config)
             val response = generativeModel.generateContent(prompt)
@@ -50,7 +52,14 @@ class AiCoreQuizGeneratorRepository @Inject constructor(
                 )
             parseResponse(raw, config)
         } catch (e: Exception) {
-            Result.Failure(QuizError.Unknown(cause = e))
+            val aiCoreCode = (e as? GenerativeAIException)?.errorCode ?: UNKNOWN_ERROR_CODE
+            val isModelUnavailable = aiCoreCode == ERROR_CODE_NOT_AVAILABLE
+                || e.message?.contains("NOT_AVAILABLE") == true
+            if (isModelUnavailable) {
+                Result.Failure(QuizError.ModelUnavailable(statusMessage = e.message ?: "NOT_AVAILABLE"))
+            } else {
+                Result.Failure(QuizError.Unknown(cause = e))
+            }
         }
     }
 
@@ -72,6 +81,12 @@ class AiCoreQuizGeneratorRepository @Inject constructor(
         } catch (e: Exception) {
             Result.Failure(QuizError.ParseFailure(raw = raw, cause = e))
         }
+    }
+
+    private companion object {
+        /** AICore error code indicating the Gemini Nano model is not downloaded or not supported. */
+        private const val ERROR_CODE_NOT_AVAILABLE = 8
+        private const val UNKNOWN_ERROR_CODE = -1
     }
 }
 
